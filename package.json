@@ -12,7 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.5",
+    "langchain": "^0.2.11",
     "openai": "^4.53.2",
     "punycode": "^2.3.1"
   }
+  
 }
