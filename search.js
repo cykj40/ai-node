@@ -1,7 +1,7 @@
-import 'dotenv/config';
-import { Document } from 'langchain/document';
-import { MemoryVectorStore } from 'langchain/vectorstores/memory';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai'; // Fallback path
+import 'dotenv/config'
+import { Document } from './node_modules/langchain/dist/document.js'
+import { MemoryVectorStore } from './node_modules/langchain/dist/vectorstores/memory.js'
+import { Embeddings } from '@langchain/core/embeddings'
 
 const movies = [
   {
@@ -39,34 +39,68 @@ const movies = [
     title: 'Interstellar',
     description: `Features futuristic space travel with high stakes`,
   },
-];
+]
+
+class CustomEmbeddings extends Embeddings {
+  constructor(apiKey) {
+    super();
+    this.apiKey = apiKey;
+  }
+
+  async embedDocuments(documents) {
+    // Implement the embedding logic using the API key
+    // Placeholder logic for embedding documents
+    return documents.map(doc => ({
+      text: doc.pageContent,
+      vector: new Array(768).fill(Math.random()) // Example embedding with random values
+    }));
+  }
+
+  async embedQuery(query) {
+    // Implement the embedding logic for the query
+    // Placeholder logic for embedding a query
+    return new Array(768).fill(Math.random()); // Example embedding with random values
+  }
+}
 
 const createStore = async () => {
+  const embeddings = new CustomEmbeddings(process.env.OPENAI_API_KEY);
   const documents = movies.map(
     (movie) =>
       new Document({
         pageContent: `Title: ${movie.title}\n${movie.description}`,
         metadata: { source: movie.id, title: movie.title },
       })
-  );
-
-  const embeddings = new OpenAIEmbeddings({ apiKey: process.env.OPENAI_API_KEY });
-  return MemoryVectorStore.fromDocuments(documents, embeddings);
-};
+  )
+  return MemoryVectorStore.fromDocuments(documents, embeddings)
+}
 
 export const search = async (query, count = 1) => {
   try {
-    const store = await createStore();
-    return await store.similaritySearch(query, count);
+    const store = await createStore()
+    return await store.similaritySearch(query, count)
   } catch (error) {
-    console.error('Error during search:', error);
+    console.error('Error during search:', error)
   }
-};
+}
 
-(async () => {
-  const results = await search('cute and furry');
-  console.log(results);
-})();
+;(async () => {
+  const results = await search('cute and furry', 3)
+  console.log('Search results:', results)
+})()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
