@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { openai } from './openai.js';
 import math from 'advanced-calculator';
+
 const QUESTION = process.argv[2] || 'hi';
 
 const messages = [
@@ -11,70 +12,90 @@ const messages = [
 ];
 
 const functions = {
-    calculate({ expression }){
+    calculate({ expression }) {
         return math.evaluate(expression);
     },
-}
+};
 
-const getCompletion = (message) => {
-    return openai.chat.completions.create({
-        model: 'gpt-3.5-turbo-0613',
-        messages,
-        temprature: 0,
-        function_call: { name: 'calculate' },
-        functions: [
-            {
-                name: 'calculate',
-                description: 'Calculate the result of a mathematical expression',
-                parameters: {
-                    type: 'object',
-                    properties: {
-                        expression: {
-                            type: 'string',
-                            description: 'The mathematical expression to evaluate',
+const getCompletion = async (messages) => {
+    try {
+        const response = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages,
+            temperature: 0,
+            function_call: { name: 'calculate' },
+            functions: [
+                {
+                    name: 'calculate',
+                    description: 'Calculate the result of a mathematical expression',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            expression: {
+                                type: 'string',
+                                description: 'The mathematical expression to evaluate',
+                            },
                         },
+                        required: ['expression'],
                     },
-                    required: ['expression'],
-                }
-            },
-
-        ]
-    });
-}
-
-let response
-while (true) {
-    response = await getCompletion(messages);
-    
-    if (response.choices[0].finish_reason === 'stop') {
-        console.log(response.choices[0].message.content);
-        break;
-    } else if (response.choices[0].finish_reason === 'function_call') {
-        const fnName = response.choices[0].message.function_call.name;
-        const args = response.choices[0].message.function_call.arguments;
-
-        const functionToCall = functions[fnName];
-        const params = JSON.parse(args);
-
-        const result = functionToCall(params);
-
-        messages.push({
-            role: 'assistant',
-            content: null,
-            function_call: {
-                name: fnName,
-                arguments: args,
-            },
-        })
-
-        messages.push({
-            role: 'function',
-            name: fnName,
-            content: JSON.stringify({ result }),
-
-        })
-
+                },
+            ],
+        });
+        console.log("OpenAI API Response:", response);
+        return response.choices[0].message;
+    } catch (error) {
+        console.error("Error with OpenAI API request:", error.response ? error.response.data : error.message);
     }
-}
+};
+
+const main = async () => {
+    let response;
+    while (true) {
+        response = await getCompletion(messages);
+
+        if (!response) {
+            console.error("No response from OpenAI API.");
+            break;
+        }
+
+        console.log("Response message:", response);
+
+        if (response.content) {
+            console.log(response.content);
+            break;
+        } else if (response.function_call) {
+            const fnName = response.function_call.name;
+            const args = JSON.parse(response.function_call.arguments);
+
+            const functionToCall = functions[fnName];
+            const result = functionToCall(args);
+
+            console.log("Function result:", result);
+
+            messages.push({
+                role: 'function',
+                name: fnName,
+                content: JSON.stringify({ result }),
+            });
+
+            // Break the loop after sending the function result back
+            console.log(`The result of the calculation is ${result}`);
+            break;
+        } else {
+            console.error("Unexpected response structure:", response);
+            break;
+        }
+    }
+};
+
+main();
+
+
+
+
+
+
+
+
 
 
