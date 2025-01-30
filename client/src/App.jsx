@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 import './App.css'
 
 function App() {
@@ -7,10 +8,12 @@ function App() {
   const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [currentChunk, setCurrentChunk] = useState(0)
+  const [totalChunks, setTotalChunks] = useState(0)
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
   useEffect(() => {
@@ -20,25 +23,52 @@ function App() {
   const startSession = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://localhost:3001/api/start-session', {
+      const response = await fetch('/api/start-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ videoUrl }),
       })
-      
+
       const data = await response.json()
       if (data.error) {
         throw new Error(data.error)
       }
-      
+
       setSessionId(data.sessionId)
-      setMessages([{ type: 'system', content: 'Transcript loaded! You can now ask questions about the video.' }])
+      setTotalChunks(data.totalChunks)
+      setMessages([
+        {
+          type: 'system',
+          content: `Transcript loaded! You can now ask questions about the video.\nProcessing ${data.totalChunks} chunks of transcript.`,
+        },
+      ])
     } catch (error) {
       setMessages([{ type: 'error', content: error.message }])
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const resetSession = async () => {
+    try {
+      if (sessionId) {
+        await fetch('/api/reset-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        })
+      }
+      setSessionId(null)
+      setMessages([])
+      setVideoUrl('')
+      setCurrentChunk(0)
+      setTotalChunks(0)
+    } catch (error) {
+      console.error('Error resetting session:', error)
     }
   }
 
@@ -48,10 +78,10 @@ function App() {
 
     const userMessage = inputMessage
     setInputMessage('')
-    setMessages(prev => [...prev, { type: 'user', content: userMessage }])
+    setMessages((prev) => [...prev, { type: 'user', content: userMessage }])
 
     try {
-      const response = await fetch('http://localhost:3001/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,9 +97,10 @@ function App() {
         throw new Error(data.error)
       }
 
-      setMessages(prev => [...prev, { type: 'assistant', content: data.reply }])
+      setCurrentChunk(data.currentChunk)
+      setMessages((prev) => [...prev, { type: 'assistant', content: data.reply }])
     } catch (error) {
-      setMessages(prev => [...prev, { type: 'error', content: error.message }])
+      setMessages((prev) => [...prev, { type: 'error', content: error.message }])
     }
   }
 
@@ -77,8 +108,13 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>YouTube Video Q&A Bot</h1>
+        {sessionId && (
+          <div className="chunk-info">
+            Processing chunk {currentChunk} of {totalChunks}
+          </div>
+        )}
       </header>
-      
+
       <main className="App-main">
         {!sessionId ? (
           <div className="url-input-container">
@@ -98,23 +134,28 @@ function App() {
             <div className="messages">
               {messages.map((msg, idx) => (
                 <div key={idx} className={`message ${msg.type}`}>
-                  {msg.content}
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
-            
-            <form onSubmit={sendMessage} className="input-form">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type your question..."
-              />
-              <button type="submit" disabled={!inputMessage.trim()}>
-                Send
+
+            <div className="input-container">
+              <form onSubmit={sendMessage} className="input-form">
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Type your question..."
+                />
+                <button type="submit" disabled={!inputMessage.trim()}>
+                  Send
+                </button>
+              </form>
+              <button onClick={resetSession} className="reset-button">
+                Load New Video
               </button>
-            </form>
+            </div>
           </div>
         )}
       </main>
@@ -122,4 +163,4 @@ function App() {
   )
 }
 
-export default App 
+export default App
