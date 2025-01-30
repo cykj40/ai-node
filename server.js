@@ -14,6 +14,65 @@ app.use(express.json());
 const openai = new OpenAI();
 const youtube = google.youtube('v3');
 
+// Rate limiting setup
+const DAILY_LIMIT = 10000;
+const RATE_LIMIT_WINDOW = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const rateLimitStore = {
+    requests: new Map(),
+    ips: new Map()
+};
+
+// Clean up old rate limit data every hour
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of rateLimitStore.requests) {
+        if (now - timestamp > RATE_LIMIT_WINDOW) {
+            rateLimitStore.requests.delete(key);
+        }
+    }
+    for (const [ip, data] of rateLimitStore.ips) {
+        if (now - data.timestamp > RATE_LIMIT_WINDOW) {
+            rateLimitStore.ips.delete(ip);
+        }
+    }
+}, 60 * 60 * 1000); // Run every hour
+
+// Rate limiting middleware
+const rateLimiter = (req, res, next) => {
+    const clientIP = req.ip;
+    const now = Date.now();
+
+    // Initialize or update IP data
+    if (!rateLimitStore.ips.has(clientIP)) {
+        rateLimitStore.ips.set(clientIP, {
+            count: 0,
+            timestamp: now
+        });
+    }
+
+    const ipData = rateLimitStore.ips.get(clientIP);
+
+    // Reset count if 24 hours have passed
+    if (now - ipData.timestamp > RATE_LIMIT_WINDOW) {
+        ipData.count = 0;
+        ipData.timestamp = now;
+    }
+
+    // Check if limit exceeded
+    if (ipData.count >= DAILY_LIMIT) {
+        return res.status(429).json({
+            error: 'Rate limit exceeded. Please try again tomorrow.',
+            remainingTime: Math.ceil((ipData.timestamp + RATE_LIMIT_WINDOW - now) / 1000 / 60), // minutes
+        });
+    }
+
+    // Increment counter
+    ipData.count++;
+    rateLimitStore.ips.set(clientIP, ipData);
+
+    next();
+};
+
 // Function to extract video ID from URL
 function extractVideoId(url) {
     const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
@@ -177,7 +236,7 @@ const getYoutubeClient = () => {
 };
 
 // Search YouTube videos
-app.post('/api/search-videos', async (req, res) => {
+app.post('/api/search-videos', rateLimiter, async (req, res) => {
     try {
         const { query } = req.body;
         const youtube = getYoutubeClient();
@@ -197,14 +256,26 @@ app.post('/api/search-videos', async (req, res) => {
             channelTitle: item.snippet.channelTitle
         }));
 
-        res.json({ videos });
+        // Include rate limit info in response
+        const ipData = rateLimitStore.ips.get(req.ip);
+        const remainingRequests = DAILY_LIMIT - ipData.count;
+        const resetTime = new Date(ipData.timestamp + RATE_LIMIT_WINDOW).toISOString();
+
+        res.json({
+            videos,
+            rateLimit: {
+                remaining: remainingRequests,
+                resetAt: resetTime,
+                limit: DAILY_LIMIT
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
 // Get AI-generated playlist recommendations
-app.post('/api/recommend-playlist', async (req, res) => {
+app.post('/api/recommend-playlist', rateLimiter, async (req, res) => {
     try {
         const { topic } = req.body;
 
@@ -230,12 +301,10 @@ app.post('/api/recommend-playlist', async (req, res) => {
         try {
             searchTerms = JSON.parse(searchResponse.choices[0].message.content);
         } catch (e) {
-            // If parsing fails, try to extract terms from the text response
             const content = searchResponse.choices[0].message.content;
             searchTerms = content.split('\n').filter(term => term.trim()).slice(0, 5);
         }
 
-        // Search for videos using each term
         const youtube = getYoutubeClient();
         const playlistVideos = [];
 
@@ -259,7 +328,6 @@ app.post('/api/recommend-playlist', async (req, res) => {
             playlistVideos.push(...videos);
         }
 
-        // Get AI to organize and explain the playlist
         const organizationResponse = await openai.chat.completions.create({
             model: 'gpt-3.5-turbo',
             messages: [
@@ -276,9 +344,19 @@ app.post('/api/recommend-playlist', async (req, res) => {
             temperature: 0.7,
         });
 
+        // Include rate limit info in response
+        const ipData = rateLimitStore.ips.get(req.ip);
+        const remainingRequests = DAILY_LIMIT - ipData.count;
+        const resetTime = new Date(ipData.timestamp + RATE_LIMIT_WINDOW).toISOString();
+
         res.json({
             videos: playlistVideos,
-            explanation: organizationResponse.choices[0].message.content
+            explanation: organizationResponse.choices[0].message.content,
+            rateLimit: {
+                remaining: remainingRequests,
+                resetAt: resetTime,
+                limit: DAILY_LIMIT
+            }
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
