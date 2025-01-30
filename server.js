@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import OpenAI from 'openai';
 import { YoutubeTranscript } from 'youtube-transcript';
+import { google } from 'googleapis';
 
 const app = express();
 const port = 3001;  // React will use 3000
@@ -11,6 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 const openai = new OpenAI();
+const youtube = google.youtube('v3');
 
 // Function to extract video ID from URL
 function extractVideoId(url) {
@@ -163,6 +165,123 @@ app.post('/api/reset-session', (req, res) => {
         res.json({ message: 'Session reset successfully' });
     } else {
         res.status(404).json({ error: 'Session not found' });
+    }
+});
+
+// Initialize YouTube API client
+const getYoutubeClient = () => {
+    return google.youtube({
+        version: 'v3',
+        auth: process.env.YOUTUBE_API_KEY
+    });
+};
+
+// Search YouTube videos
+app.post('/api/search-videos', async (req, res) => {
+    try {
+        const { query } = req.body;
+        const youtube = getYoutubeClient();
+
+        const response = await youtube.search.list({
+            part: 'snippet',
+            q: query,
+            type: 'video',
+            maxResults: 10
+        });
+
+        const videos = response.data.items.map(item => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail: item.snippet.thumbnails.medium.url,
+            channelTitle: item.snippet.channelTitle
+        }));
+
+        res.json({ videos });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get AI-generated playlist recommendations
+app.post('/api/recommend-playlist', async (req, res) => {
+    try {
+        const { topic } = req.body;
+
+        // First, get AI suggestions for search terms
+        const searchResponse = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a helpful assistant that suggests YouTube search terms for creating a playlist about a specific topic. 
+                   Format your response as a JSON array of 5 specific search terms.
+                   Make the search terms specific and varied to create a well-rounded playlist.`
+                },
+                {
+                    role: 'user',
+                    content: `Suggest 5 specific search terms for creating a YouTube playlist about: ${topic}`
+                }
+            ],
+            temperature: 0.7,
+        });
+
+        let searchTerms;
+        try {
+            searchTerms = JSON.parse(searchResponse.choices[0].message.content);
+        } catch (e) {
+            // If parsing fails, try to extract terms from the text response
+            const content = searchResponse.choices[0].message.content;
+            searchTerms = content.split('\n').filter(term => term.trim()).slice(0, 5);
+        }
+
+        // Search for videos using each term
+        const youtube = getYoutubeClient();
+        const playlistVideos = [];
+
+        for (const term of searchTerms) {
+            const response = await youtube.search.list({
+                part: 'snippet',
+                q: term,
+                type: 'video',
+                maxResults: 2
+            });
+
+            const videos = response.data.items.map(item => ({
+                id: item.id.videoId,
+                title: item.snippet.title,
+                description: item.snippet.description,
+                thumbnail: item.snippet.thumbnails.medium.url,
+                channelTitle: item.snippet.channelTitle,
+                searchTerm: term
+            }));
+
+            playlistVideos.push(...videos);
+        }
+
+        // Get AI to organize and explain the playlist
+        const organizationResponse = await openai.chat.completions.create({
+            model: 'gpt-3.5-turbo',
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a helpful assistant that organizes and explains YouTube playlists.'
+                },
+                {
+                    role: 'user',
+                    content: `Here's a list of videos for a ${topic} playlist. Please organize them and explain why each video is included:
+          ${playlistVideos.map(video => video.title).join('\n')}`
+                }
+            ],
+            temperature: 0.7,
+        });
+
+        res.json({
+            videos: playlistVideos,
+            explanation: organizationResponse.choices[0].message.content
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
