@@ -1,11 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
+  --primary-color: #0ea5e9;
+  --secondary-color: #64748b;
+  --background-color: #f8fafc;
+  --text-color: #1e293b;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 }
 
 body {
+  @apply bg-slate-50;
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+}
+
+.message-transition {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.message {
+  @apply rounded-lg p-4 max-w-[85%] shadow-sm;
+}
+
+.message.user {
+  @apply bg-primary-100 text-primary-900 ml-auto;
+}
+
+.message.assistant {
+  @apply bg-white text-gray-800;
+}
+
+.message.system {
+  @apply bg-green-50 text-green-800 mx-auto max-w-2xl;
+}
+
+.message.error {
+  @apply bg-red-50 text-red-800 mx-auto max-w-2xl;
+}
+
+/* Markdown Styles */
+.message h1 {
+  @apply text-2xl font-bold mb-4;
+}
+
+.message h2 {
+  @apply text-xl font-bold mb-3;
+}
+
+.message h3 {
+  @apply text-lg font-bold mb-2;
+}
+
+.message p {
+  @apply mb-4;
+}
+
+.message ul {
+  @apply list-disc pl-5 mb-4;
+}
+
+.message ol {
+  @apply list-decimal pl-5 mb-4;
+}
+
+.message table {
+  @apply w-full border-collapse mb-4;
+}
+
+.message th {
+  @apply bg-gray-50 text-left p-2 border border-gray-200;
+}
+
+.message td {
+  @apply p-2 border border-gray-200;
+}
+
+.message code {
+  @apply bg-gray-50 px-1 py-0.5 rounded text-sm font-mono;
+}
+
+.message pre {
+  @apply bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.message blockquote {
+  @apply border-l-4 border-gray-200 pl-4 italic my-4;
 } 
