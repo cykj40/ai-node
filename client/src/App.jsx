@@ -8,6 +8,7 @@ import {
   TrashIcon,
   PlayIcon,
 } from '@heroicons/react/24/outline'
+import { getApiUrl } from './config'
 import './App.css'
 
 function App() {
@@ -39,7 +40,7 @@ function App() {
   const searchVideos = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/search-videos', {
+      const response = await fetch(getApiUrl('/api/search-videos'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ function App() {
   const getPlaylistRecommendations = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/recommend-playlist', {
+      const response = await fetch(getApiUrl('/api/recommend-playlist'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ function App() {
   const startSession = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/start-session', {
+      const response = await fetch(getApiUrl('/api/start-session'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ function App() {
   const resetSession = async () => {
     try {
       if (sessionId) {
-        await fetch('/api/reset-session', {
+        await fetch(getApiUrl('/api/reset-session'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -148,7 +149,7 @@ function App() {
     setMessages((prev) => [...prev, { type: 'user', content: userMessage }])
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(getApiUrl('/api/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
