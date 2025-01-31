@@ -8,8 +8,8 @@
     "start": "node server.js",
     "client": "cd client && npm run dev",
     "dev": "concurrently \"npm start\" \"npm run client\"",
-    "build": "cd client && npm install && npm run build",
-    "vercel-build": "cd client && npm install && npm run build"
+    "build": "npm install",
+    "vercel-build": "npm install"
   },
   "keywords": [],
   "author": "",
