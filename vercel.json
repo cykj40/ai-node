@@ -9,22 +9,31 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "client/dist",
-        "buildCommand": "cd client && npm install --platform=linux --arch=x64 && npm run build"
+        "distDir": "dist",
+        "buildCommand": "cd client && npm install && npm run build"
       }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/server.js"
+      "dest": "server.js"
     },
     {
-      "handle": "filesystem"
+      "src": "^/favicon.ico$",
+      "dest": "client/dist/favicon.ico"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "client/dist/assets/$1"
+    },
+    {
+      "src": "/(.*)\\.(?:js|css|svg|ico)$",
+      "dest": "client/dist/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/client/dist/$1"
+      "dest": "client/dist/index.html"
     }
   ]
 } 
