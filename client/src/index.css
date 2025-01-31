@@ -3,17 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #0ea5e9;
-  --secondary-color: #64748b;
-  --background-color: #f8fafc;
-  --text-color: #1e293b;
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --youtube-red: #ff0000;
+  --youtube-dark-red: #cc0000;
+  --youtube-black: #282828;
+  --youtube-white: #ffffff;
+  --youtube-light-gray: #f8f8f8;
+  --youtube-gray: #606060;
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 }
 
 body {
-  @apply bg-slate-50;
+  @apply bg-[#f9f9f9];
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
@@ -28,44 +30,79 @@ body {
 }
 
 .message.user {
-  @apply bg-primary-100 text-primary-900 ml-auto;
+  @apply bg-[#f8f8f8] text-[#282828] ml-auto border border-gray-200;
 }
 
 .message.assistant {
-  @apply bg-white text-gray-800;
+  @apply bg-white text-[#282828] border border-gray-200;
 }
 
 .message.system {
-  @apply bg-green-50 text-green-800 mx-auto max-w-2xl;
+  @apply bg-[#f1f1f1] text-[#282828] mx-auto max-w-2xl border border-gray-200;
 }
 
 .message.error {
-  @apply bg-red-50 text-red-800 mx-auto max-w-2xl;
+  @apply bg-red-50 text-red-800 mx-auto max-w-2xl border border-red-100;
+}
+
+/* YouTube-style buttons */
+.yt-button {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-[#ff0000] hover:bg-[#cc0000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ff0000] disabled:opacity-50 transition-colors duration-200;
+}
+
+.yt-button-secondary {
+  @apply inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-full shadow-sm text-[#606060] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 disabled:opacity-50 transition-colors duration-200;
+}
+
+/* YouTube-style inputs */
+.yt-input {
+  @apply block w-full rounded-full border-gray-300 shadow-sm focus:border-[#ff0000] focus:ring focus:ring-[#ff0000] focus:ring-opacity-50 transition-colors duration-200;
+}
+
+/* YouTube-style cards */
+.video-card {
+  @apply bg-white rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200;
+}
+
+.video-card:hover .video-thumbnail {
+  @apply transform scale-105;
+}
+
+.video-thumbnail {
+  @apply transition-transform duration-200 w-full aspect-video object-cover;
+}
+
+.video-title {
+  @apply font-medium text-[#282828] line-clamp-2 hover:text-[#ff0000] transition-colors duration-200;
+}
+
+.channel-name {
+  @apply text-sm text-[#606060] hover:text-[#282828] transition-colors duration-200;
 }
 
 /* Markdown Styles */
 .message h1 {
-  @apply text-2xl font-bold mb-4;
+  @apply text-2xl font-bold mb-4 text-[#282828];
 }
 
 .message h2 {
-  @apply text-xl font-bold mb-3;
+  @apply text-xl font-bold mb-3 text-[#282828];
 }
 
 .message h3 {
-  @apply text-lg font-bold mb-2;
+  @apply text-lg font-bold mb-2 text-[#282828];
 }
 
 .message p {
-  @apply mb-4;
+  @apply mb-4 text-[#282828];
 }
 
 .message ul {
-  @apply list-disc pl-5 mb-4;
+  @apply list-disc pl-5 mb-4 text-[#282828];
 }
 
 .message ol {
-  @apply list-decimal pl-5 mb-4;
+  @apply list-decimal pl-5 mb-4 text-[#282828];
 }
 
 .message table {
@@ -73,7 +110,7 @@ body {
 }
 
 .message th {
-  @apply bg-gray-50 text-left p-2 border border-gray-200;
+  @apply bg-[#f8f8f8] text-left p-2 border border-gray-200;
 }
 
 .message td {
@@ -81,15 +118,15 @@ body {
 }
 
 .message code {
-  @apply bg-gray-50 px-1 py-0.5 rounded text-sm font-mono;
+  @apply bg-[#f8f8f8] px-1 py-0.5 rounded text-sm font-mono;
 }
 
 .message pre {
-  @apply bg-gray-50 p-4 rounded-lg overflow-x-auto mb-4;
+  @apply bg-[#f8f8f8] p-4 rounded-lg overflow-x-auto mb-4;
 }
 
 .message blockquote {
-  @apply border-l-4 border-gray-200 pl-4 italic my-4;
+  @apply border-l-4 border-[#ff0000] pl-4 italic my-4 text-[#606060];
 }
 
 /* Aspect Ratio Container */

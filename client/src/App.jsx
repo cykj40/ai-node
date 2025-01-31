@@ -193,19 +193,21 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f9f9f9]">
+      <header className="bg-white shadow-sm sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">YouTube Video Assistant</h1>
+            <h1 className="text-2xl font-bold text-[#282828] flex items-center gap-2">
+              <span className="text-[#ff0000]">▶</span> YouTube Video Assistant
+            </h1>
             <div className="flex items-center gap-4">
               {rateLimitInfo && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-[#606060]">
                   Remaining requests: {rateLimitInfo.remaining}/{rateLimitInfo.limit}
                 </div>
               )}
               {sessionId && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-[#606060]">
                   Processing chunk {currentChunk} of {totalChunks}
                 </div>
               )}
@@ -218,19 +220,19 @@ function App() {
         <div className="space-y-6">
           {/* Video Search Section */}
           <div className="bg-white shadow-sm rounded-lg p-6">
-            <h2 className="text-lg font-medium mb-4">Search YouTube Videos</h2>
+            <h2 className="text-lg font-medium mb-4 text-[#282828]">Search YouTube Videos</h2>
             <div className="flex gap-4">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for videos..."
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="yt-input"
               />
               <button
                 onClick={searchVideos}
                 disabled={isLoading || !searchQuery}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                className="yt-button"
               >
                 {isLoading ? (
                   <ArrowPathIcon className="animate-spin h-5 w-5" />
@@ -239,44 +241,40 @@ function App() {
                 )}
               </button>
               {searchResults.length > 0 && (
-                <button
-                  onClick={clearSearch}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
+                <button onClick={clearSearch} className="yt-button-secondary">
                   <TrashIcon className="h-5 w-5" />
                 </button>
               )}
             </div>
             {searchResults.length > 0 && (
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {searchResults.map((video) => (
-                  <div
-                    key={`search-${video.id}`}
-                    className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
-                  >
+                  <div key={`search-${video.id}`} className="video-card">
                     <div
-                      className="relative cursor-pointer group"
+                      className="relative cursor-pointer overflow-hidden"
                       onClick={() => handleVideoSelect(video)}
                     >
-                      <img src={video.thumbnail} alt={video.title} className="w-full rounded-lg" />
+                      <img src={video.thumbnail} alt={video.title} className="video-thumbnail" />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-opacity">
                         <PlayIcon className="h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
-                    <h3
-                      className="mt-2 text-sm font-medium cursor-pointer hover:text-primary-600"
-                      onClick={() => handleVideoSelect(video)}
-                    >
-                      {video.title}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">{video.channelTitle}</p>
-                    <button
-                      onClick={() => handleVideoSelect(video)}
-                      className="mt-2 text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-2"
-                    >
-                      <PlayIcon className="h-4 w-4" />
-                      Select for Q&A
-                    </button>
+                    <div className="p-4">
+                      <h3
+                        className="video-title cursor-pointer"
+                        onClick={() => handleVideoSelect(video)}
+                      >
+                        {video.title}
+                      </h3>
+                      <p className="channel-name mt-1">{video.channelTitle}</p>
+                      <button
+                        onClick={() => handleVideoSelect(video)}
+                        className="mt-3 yt-button w-full justify-center"
+                      >
+                        <PlayIcon className="h-4 w-4 mr-2" />
+                        Select for Q&A
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -285,19 +283,21 @@ function App() {
 
           {/* Playlist Recommendations Section */}
           <div className="bg-white shadow-sm rounded-lg p-6">
-            <h2 className="text-lg font-medium mb-4">Get Playlist Recommendations</h2>
+            <h2 className="text-lg font-medium mb-4 text-[#282828]">
+              Get Playlist Recommendations
+            </h2>
             <div className="flex gap-4">
               <input
                 type="text"
                 value={playlistTopic}
                 onChange={(e) => setPlaylistTopic(e.target.value)}
                 placeholder="Enter a topic (e.g., 'yoga for beginners')"
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                className="yt-input"
               />
               <button
                 onClick={getPlaylistRecommendations}
                 disabled={isLoading || !playlistTopic}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                className="yt-button whitespace-nowrap"
               >
                 {isLoading ? (
                   <ArrowPathIcon className="animate-spin h-5 w-5" />
@@ -306,53 +306,47 @@ function App() {
                 )}
               </button>
               {playlist && (
-                <button
-                  onClick={clearPlaylist}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
+                <button onClick={clearPlaylist} className="yt-button-secondary">
                   <TrashIcon className="h-5 w-5" />
                 </button>
               )}
             </div>
             {playlist && (
-              <div className="mt-4">
-                <div className="mb-4 prose">
+              <div className="mt-6">
+                <div className="mb-6 prose max-w-none">
                   <ReactMarkdown>{playlist.explanation}</ReactMarkdown>
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {playlist.videos.map((video, index) => (
-                    <div
-                      key={`playlist-${video.id}-${index}`}
-                      className="border rounded-lg p-4 hover:shadow-lg transition-shadow"
-                    >
+                    <div key={`playlist-${video.id}-${index}`} className="video-card">
                       <div
-                        className="relative cursor-pointer group"
+                        className="relative cursor-pointer overflow-hidden"
                         onClick={() => handleVideoSelect(video)}
                       >
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full rounded-lg"
-                        />
+                        <img src={video.thumbnail} alt={video.title} className="video-thumbnail" />
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-opacity">
                           <PlayIcon className="h-12 w-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
-                      <h3
-                        className="mt-2 text-sm font-medium cursor-pointer hover:text-primary-600"
-                        onClick={() => handleVideoSelect(video)}
-                      >
-                        {video.title}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">{video.channelTitle}</p>
-                      <p className="mt-1 text-xs text-gray-400">Search term: {video.searchTerm}</p>
-                      <button
-                        onClick={() => handleVideoSelect(video)}
-                        className="mt-2 text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-2"
-                      >
-                        <PlayIcon className="h-4 w-4" />
-                        Select for Q&A
-                      </button>
+                      <div className="p-4">
+                        <h3
+                          className="video-title cursor-pointer"
+                          onClick={() => handleVideoSelect(video)}
+                        >
+                          {video.title}
+                        </h3>
+                        <p className="channel-name mt-1">{video.channelTitle}</p>
+                        <p className="mt-1 text-xs text-[#606060]">
+                          Search term: {video.searchTerm}
+                        </p>
+                        <button
+                          onClick={() => handleVideoSelect(video)}
+                          className="mt-3 yt-button w-full justify-center"
+                        >
+                          <PlayIcon className="h-4 w-4 mr-2" />
+                          Select for Q&A
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -362,13 +356,13 @@ function App() {
 
           {/* Video Preview Modal */}
           {showVideoPreview && selectedVideo && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 max-w-3xl w-full mx-4">
                 <div className="flex justify-between items-start mb-4">
-                  <h2 className="text-xl font-bold">{selectedVideo.title}</h2>
+                  <h2 className="text-xl font-bold text-[#282828]">{selectedVideo.title}</h2>
                   <button
                     onClick={() => setShowVideoPreview(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-[#606060] hover:text-[#282828]"
                   >
                     <XMarkIcon className="h-6 w-6" />
                   </button>
@@ -383,20 +377,17 @@ function App() {
                   ></iframe>
                 </div>
                 <div className="mb-4">
-                  <h3 className="font-medium">Description</h3>
-                  <p className="text-sm text-gray-600">{selectedVideo.description}</p>
+                  <h3 className="font-medium text-[#282828]">Description</h3>
+                  <p className="text-sm text-[#606060]">{selectedVideo.description}</p>
                 </div>
                 <div className="flex justify-end gap-4">
                   <button
                     onClick={() => setShowVideoPreview(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                    className="yt-button-secondary"
                   >
                     Cancel
                   </button>
-                  <button
-                    onClick={handleStartQA}
-                    className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
+                  <button onClick={handleStartQA} className="yt-button">
                     Start Q&A Session
                   </button>
                 </div>
@@ -407,20 +398,20 @@ function App() {
           {/* Q&A Section */}
           {!sessionId ? (
             <div className="bg-white shadow-sm rounded-lg p-6">
-              <h2 className="text-lg font-medium mb-4">Start Q&A Session</h2>
+              <h2 className="text-lg font-medium mb-4 text-[#282828]">Start Q&A Session</h2>
               <div className="flex gap-4">
                 <input
                   type="text"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                   placeholder="https://www.youtube.com/watch?v=..."
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                  className="yt-input"
                   disabled={isLoading}
                 />
                 <button
                   onClick={startSession}
                   disabled={isLoading || !videoUrl}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="yt-button"
                 >
                   {isLoading ? <ArrowPathIcon className="animate-spin h-5 w-5" /> : 'Start Session'}
                 </button>
@@ -450,20 +441,12 @@ function App() {
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Type your question..."
-                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                      className="yt-input"
                     />
-                    <button
-                      type="submit"
-                      disabled={!inputMessage.trim()}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
-                    >
+                    <button type="submit" disabled={!inputMessage.trim()} className="yt-button">
                       <PaperAirplaneIcon className="h-5 w-5" />
                     </button>
-                    <button
-                      onClick={resetSession}
-                      type="button"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                    >
+                    <button onClick={resetSession} type="button" className="yt-button-secondary">
                       <XMarkIcon className="h-5 w-5" />
                     </button>
                   </form>
