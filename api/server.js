@@ -9,11 +9,14 @@ const app = express();
 
 // Simplified CORS configuration
 app.use(cors({
-    origin: '*',  // Allow all origins in development
+    origin: '*',
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 
@@ -252,19 +255,14 @@ apiRouter.post('/reset-session', (req, res) => {
     }
 });
 
-// Initialize YouTube API client
-const getYoutubeClient = () => {
-    return google.youtube({
-        version: 'v3',
-        auth: process.env.YOUTUBE_API_KEY
-    });
-};
-
-// Search YouTube videos
-apiRouter.post('/search-videos', rateLimiter, async (req, res) => {
+// Move search-videos route directly to app
+app.post('/api/search-videos', async (req, res) => {
     try {
         const { query } = req.body;
-        const youtube = getYoutubeClient();
+        const youtube = google.youtube({
+            version: 'v3',
+            auth: process.env.YOUTUBE_API_KEY
+        });
 
         const response = await youtube.search.list({
             part: 'snippet',
@@ -273,8 +271,17 @@ apiRouter.post('/search-videos', rateLimiter, async (req, res) => {
             maxResults: 10
         });
 
-        res.json(response.data);
+        const videos = response.data.items.map(item => ({
+            id: item.id.videoId,
+            title: item.snippet.title,
+            description: item.snippet.description,
+            thumbnail: item.snippet.thumbnails.medium.url,
+            channelTitle: item.snippet.channelTitle
+        }));
+
+        res.json({ videos });
     } catch (error) {
+        console.error('Search error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -310,7 +317,7 @@ apiRouter.post('/recommend-playlist', rateLimiter, async (req, res) => {
             searchTerms = content.split('\n').filter(term => term.trim()).slice(0, 5);
         }
 
-        const youtube = getYoutubeClient();
+        const youtube = google.youtube('v3');
         const playlistVideos = [];
 
         for (const term of searchTerms) {
