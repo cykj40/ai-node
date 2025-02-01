@@ -7,27 +7,24 @@ import { google } from 'googleapis';
 
 const app = express();
 
-// Updated CORS configuration with specific origins
+// Simplified CORS configuration
 app.use(cors({
-    origin: [
-        'https://ai-youtube-chat-13ibxgr9k-cykj40s-projects.vercel.app',
-        'http://localhost:5173', // for local development
-        'http://localhost:3000'  // for local development alternative port
-    ],
+    origin: '*',  // Allow all origins in development
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
     optionsSuccessStatus: 200
 }));
-
-// Add CORS preflight handler
-app.options('*', cors()); // enable pre-flight for all routes
 
 app.use(express.json());
 
 // Add a test route at the root
 app.get('/', (req, res) => {
     res.json({ message: 'API is running' });
+});
+
+// Test route for CORS
+app.get('/test-cors', (req, res) => {
+    res.json({ message: 'CORS is working' });
 });
 
 // Create API router
