@@ -23,8 +23,5 @@
       "src": "/.*",
       "dest": "/dist/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_URL": "@api_url"
-  }
+  ]
 }
