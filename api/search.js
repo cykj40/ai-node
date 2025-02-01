@@ -1,6 +1,6 @@
 import 'dotenv/config'
-import { Document } from './node_modules/langchain/dist/document.js'
-import { MemoryVectorStore } from './node_modules/langchain/dist/vectorstores/memory.js'
+import { Document } from '../node_modules/langchain/dist/document.js'
+import { MemoryVectorStore } from '../node_modules/langchain/dist/vectorstores/memory.js'
 import { Embeddings } from '@langchain/core/embeddings'
 
 const movies = [
@@ -84,10 +84,10 @@ export const search = async (query, count = 1) => {
   }
 }
 
-;(async () => {
-  const results = await search('cute and furry', 3)
-  console.log('Search results:', results)
-})()
+  ; (async () => {
+    const results = await search('cute and furry', 3)
+    console.log('Search results:', results)
+  })()
 
 
 

@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import axios from 'axios';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
-import { YoutubeLoader } from '@langchain/community/document_loaders/web/youtube';
-import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
+import { YoutubeLoader } from 'langchain/document_loaders/web/youtube';
+import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { CharacterTextSplitter } from 'langchain/text_splitter';
 import { openai } from './openai.js';
 
@@ -26,7 +26,7 @@ export const createStore = async (docs) => {
           },
         }
       );
-      return response.data.embeddings; // Assuming the API returns embeddings
+      return response.data.embeddings;
     })
   );
 

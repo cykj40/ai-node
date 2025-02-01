@@ -11,7 +11,7 @@ const newMessage = async (history, message) => {
         model: 'gpt-3.5-turbo',
         messages: [...history, message],
         // temprature is a parameter that controls uniqueness of the response 0 more deterministic, 1 more creative
-        
+
     });
     return results.choices[0].message.content;
 };
