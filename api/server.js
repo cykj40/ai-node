@@ -248,27 +248,7 @@ app.post('/api/search-videos', rateLimiter, async (req, res) => {
             maxResults: 10
         });
 
-        const videos = response.data.items.map(item => ({
-            id: item.id.videoId,
-            title: item.snippet.title,
-            description: item.snippet.description,
-            thumbnail: item.snippet.thumbnails.medium.url,
-            channelTitle: item.snippet.channelTitle
-        }));
-
-        // Include rate limit info in response
-        const ipData = rateLimitStore.ips.get(req.ip);
-        const remainingRequests = DAILY_LIMIT - ipData.count;
-        const resetTime = new Date(ipData.timestamp + RATE_LIMIT_WINDOW).toISOString();
-
-        res.json({
-            videos,
-            rateLimit: {
-                remaining: remainingRequests,
-                resetAt: resetTime,
-                limit: DAILY_LIMIT
-            }
-        });
+        res.json(response.data);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -363,6 +343,8 @@ app.post('/api/recommend-playlist', rateLimiter, async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+// Add listener for Vercel
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 }); 
