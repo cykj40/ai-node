@@ -7,9 +7,19 @@ import { google } from 'googleapis';
 
 const app = express();
 
-// CORS configuration with specific client domain
+// CORS configuration that handles Vercel preview deployments
 const corsOptions = {
-    origin: 'https://ai-youtube-chat-git-main-cykj40s-projects.vercel.app',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        // Allow any vercel.app subdomain and localhost
+        if (origin.match(/\.vercel\.app$/) || origin.match(/localhost/)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
