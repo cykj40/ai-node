@@ -7,9 +7,22 @@ import { google } from 'googleapis';
 
 const app = express();
 
-// CORS configuration with permanent client URL
+// Define allowed origins
+const allowedOrigins = [
+    'https://ai-youtube-chat.vercel.app',
+    'https://ai-youtube-chat-buydsguh3-cykj40s-projects.vercel.app',
+    'http://localhost:5173'
+];
+
+// CORS configuration with origin checking
 const corsOptions = {
-    origin: ['https://ai-youtube-chat.vercel.app', 'http://localhost:5173', 'https://videoiq-api.vercel.app'],
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -17,7 +30,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Handle preflight
+// Handle preflight requests
 app.options('*', cors(corsOptions));
 
 app.use(express.json());
