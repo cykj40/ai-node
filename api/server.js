@@ -7,11 +7,17 @@ import { google } from 'googleapis';
 
 const app = express();
 
-// Updated CORS configuration
+// Updated CORS configuration with specific origins
 app.use(cors({
-    origin: '*',  // Be careful with this in production
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: [
+        'https://ai-youtube-chat-13ibxgr9k-cykj40s-projects.vercel.app',
+        'http://localhost:5173', // for local development
+        'http://localhost:3000'  // for local development alternative port
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
 app.use(express.json());
 
