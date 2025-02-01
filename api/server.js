@@ -7,29 +7,13 @@ import { google } from 'googleapis';
 
 const app = express();
 
-// Define allowed origins
-const allowedOrigins = [
-    'https://ai-youtube-chat-13ibxgr9k-cykj40s-projects.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-];
-
-// CORS configuration with specific origins
+// CORS configuration with specific client domain
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: 'https://ai-youtube-chat-git-main-cykj40s-projects.vercel.app',
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    maxAge: 86400, // 24 hours
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
