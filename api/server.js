@@ -8,7 +8,12 @@ import { google } from 'googleapis';
 const app = express();
 const port = 3001;  // React will use 3000
 
-app.use(cors());
+// Updated CORS configuration
+app.use(cors({
+    origin: '*',  // Be careful with this in production
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const openai = new OpenAI();
