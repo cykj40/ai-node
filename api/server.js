@@ -19,6 +19,10 @@ app.use(cors({
     credentials: true,
     optionsSuccessStatus: 200
 }));
+
+// Add CORS preflight handler
+app.options('*', cors()); // enable pre-flight for all routes
+
 app.use(express.json());
 
 // Add a test route at the root
