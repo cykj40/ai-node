@@ -7,28 +7,17 @@ import { google } from 'googleapis';
 
 const app = express();
 
-// CORS configuration that handles Vercel preview deployments
+// CORS configuration with permanent client URL
 const corsOptions = {
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-
-        // Allow any vercel.app subdomain and localhost
-        if (origin.match(/\.vercel\.app$/) || origin.match(/localhost/)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: ['https://ai-youtube-chat.vercel.app', 'http://localhost:5173', 'https://videoiq-api.vercel.app'],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 200
+    credentials: true
 };
 
 app.use(cors(corsOptions));
 
-// Handle preflight requests
+// Handle preflight
 app.options('*', cors(corsOptions));
 
 app.use(express.json());
