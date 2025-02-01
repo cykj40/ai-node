@@ -6,7 +6,6 @@ import { YoutubeTranscript } from 'youtube-transcript';
 import { google } from 'googleapis';
 
 const app = express();
-const port = 3001;  // React will use 3000
 
 // Updated CORS configuration
 app.use(cors({
@@ -362,8 +361,6 @@ apiRouter.post('/recommend-playlist', rateLimiter, async (req, res) => {
     }
 });
 
-// Add listener for Vercel
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-}); 
+// Remove the port listening for Vercel
+// Instead, export the app
+export default app; 
