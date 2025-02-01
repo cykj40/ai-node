@@ -16,6 +16,20 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Add a test route at the root
+app.get('/', (req, res) => {
+    res.json({ message: 'API is running' });
+});
+
+// Create API router
+const apiRouter = express.Router();
+
+// Move all existing routes to apiRouter
+// ... rest of your route definitions but using apiRouter instead of app ...
+
+// Mount the API router at /api
+app.use('/api', apiRouter);
+
 const openai = new OpenAI();
 const youtube = google.youtube('v3');
 
@@ -132,7 +146,7 @@ function chunkTranscript(transcript, maxLength = 8000) {
 // Store transcripts in memory
 const sessions = new Map();
 
-app.post('/api/start-session', async (req, res) => {
+apiRouter.post('/start-session', async (req, res) => {
     try {
         const { videoUrl } = req.body;
         const transcript = await getTranscript(videoUrl);
@@ -166,7 +180,7 @@ app.post('/api/start-session', async (req, res) => {
     }
 });
 
-app.post('/api/chat', async (req, res) => {
+apiRouter.post('/chat', async (req, res) => {
     try {
         const { sessionId, message } = req.body;
         const session = sessions.get(sessionId);
@@ -222,7 +236,7 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // New endpoint to unload/reset session
-app.post('/api/reset-session', (req, res) => {
+apiRouter.post('/reset-session', (req, res) => {
     const { sessionId } = req.body;
     if (sessions.has(sessionId)) {
         sessions.delete(sessionId);
@@ -241,7 +255,7 @@ const getYoutubeClient = () => {
 };
 
 // Search YouTube videos
-app.post('/api/search-videos', rateLimiter, async (req, res) => {
+apiRouter.post('/search-videos', rateLimiter, async (req, res) => {
     try {
         const { query } = req.body;
         const youtube = getYoutubeClient();
@@ -260,7 +274,7 @@ app.post('/api/search-videos', rateLimiter, async (req, res) => {
 });
 
 // Get AI-generated playlist recommendations
-app.post('/api/recommend-playlist', rateLimiter, async (req, res) => {
+apiRouter.post('/recommend-playlist', rateLimiter, async (req, res) => {
     try {
         const { topic } = req.body;
 
